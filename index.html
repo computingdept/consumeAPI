@@ -1,20 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Metal Cost Calculator</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    padding: 30px;
+  }
+
+  .container {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 450px;
+    margin: auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+
+  h2 {
+    text-align: center;
+  }
+
+  label {
+    margin-top: 10px;
+    display: block;
+  }
+
+  select, input, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+
+  button {
+    background: #2e7d32;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  button:hover {
+    background: #1b5e20;
+  }
+
+  #result {
+    margin-top: 20px;
+    padding: 15px;
+    background: #eef7ee;
+    border-radius: 8px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Metal Cost Calculator</h2>
+
+  <label>Select Metal:</label>
+  <select id="metal">
+    <option value="steel">Steel</option>
+    <option value="iron">Iron</option>
+    <option value="copper">Copper</option>
+    <option value="aluminium">Aluminium</option>
+  </select>
+
+  <label>Quantity (kg):</label>
+  <input type="number" id="qty" value="10">
+
+  <label>Delivery Date:</label>
+  <input type="date" id="delivery">
+
+  <button onclick="calculate()">Calculate Cost</button>
+
+  <div id="result"></div>
+</div>
+
 <script>
 async function calculate() {
 
-  const apiKey = "636bd01c9b6f77fcfba389cad1148a30";
+  const apiKey = "YOUR_API_KEY_HERE";
 
   const metal = document.getElementById("metal").value;
   const qty = parseFloat(document.getElementById("qty").value);
   const delivery = document.getElementById("delivery").value;
 
   if (qty <= 0 || isNaN(qty)) {
-    alert("Enter a valid quantity");
+    alert("Please enter a valid quantity.");
     return;
   }
 
-  let pricePerUnit;
+  let pricePerKg;
 
-  // 🟡 STATIC PRICES (industrial realistic estimates per kg)
+  // Static fallback prices (USD per kg)
   const staticPrices = {
     steel: 0.75,
     iron: 0.60
@@ -22,7 +106,7 @@ async function calculate() {
 
   try {
 
-    // 🟢 If metal is from API
+    // API metals
     if (metal === "copper" || metal === "aluminium") {
 
       const apiMap = {
@@ -35,18 +119,16 @@ async function calculate() {
       const response = await fetch(url);
       const data = await response.json();
 
-      pricePerUnit = data.rates[apiMap[metal]];
+      pricePerKg = data.rates[apiMap[metal]];
 
-    } 
-    // 🟡 Otherwise use static
-    else {
-      pricePerUnit = staticPrices[metal];
+    } else {
+      // Use static prices
+      pricePerKg = staticPrices[metal];
     }
 
-    // 🚚 Simple delivery logic
-    let deliveryCost = qty * 0.2; // 20p per kg
+    // Delivery cost logic
+    let deliveryCost = qty * 0.2;
 
-    // 📅 Optional: faster delivery costs more
     if (delivery) {
       const today = new Date();
       const selected = new Date(delivery);
@@ -57,21 +139,27 @@ async function calculate() {
       }
     }
 
-    const total = (pricePerUnit * qty) + deliveryCost;
+    const materialCost = pricePerKg * qty;
+    const total = materialCost + deliveryCost;
 
     document.getElementById("result").innerHTML = `
-      Metal: ${metal} <br>
-      Price per kg: $${pricePerUnit.toFixed(2)} <br>
-      Quantity: ${qty} kg <br>
-      Delivery Date: ${delivery || "Not selected"} <br>
-      Delivery Cost: $${deliveryCost.toFixed(2)} <br>
+      <strong>Order Summary</strong><br><br>
+      Metal: ${metal}<br>
+      Price per kg: $${pricePerKg.toFixed(2)}<br>
+      Quantity: ${qty} kg<br>
+      Material Cost: $${materialCost.toFixed(2)}<br>
+      Delivery Cost: $${deliveryCost.toFixed(2)}<br>
+      Delivery Date: ${delivery || "Not selected"}<br>
       <hr>
-      Total Cost: $${total.toFixed(2)}
+      <strong>Total Cost: $${total.toFixed(2)}</strong>
     `;
 
   } catch (error) {
-    document.getElementById("result").innerText = "Error loading data.";
+    document.getElementById("result").innerText = "Error retrieving data.";
     console.error(error);
   }
 }
 </script>
+
+</body>
+</html>
