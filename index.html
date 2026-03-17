@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Metal Price Calculator</title>
+
+<style>
+  body {
+    font-family: Arial;
+    padding: 20px;
+    background: #f4f4f4;
+  }
+
+  .box {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 400px;
+  }
+
+  input, select, button {
+    margin: 10px 0;
+    padding: 8px;
+    width: 100%;
+  }
+
+  #result {
+    margin-top: 20px;
+    font-weight: bold;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>Metal Cost Calculator</h2>
+
+  <label>Select Metal:</label>
+  <select id="metal">
+    <option value="XAU">Gold</option>
+    <option value="XAG">Silver</option>
+    <option value="XCU">Copper</option>
+  </select>
+
+  <label>Quantity (kg):</label>
+  <input type="number" id="qty" value="1">
+
+  <label>Delivery Date:</label>
+  <input type="date" id="delivery">
+
+  <button onclick="calculate()">Get Price</button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+async function calculate() {
+
+  const apiKey = "YOUR_API_KEY_HERE";
+
+  const metal = document.getElementById("metal").value;
+  const qty = document.getElementById("qty").value;
+  const delivery = document.getElementById("delivery").value;
+
+  const url = `https://api.metalpriceapi.com/v1/latest?api_key=${apiKey}&base=USD&currencies=${metal}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const pricePerUnit = data.rates[metal];
+    const total = pricePerUnit * qty;
+
+    document.getElementById("result").innerHTML = `
+      Price per unit: $${pricePerUnit.toFixed(2)} <br>
+      Quantity: ${qty} kg <br>
+      Delivery Date: ${delivery || "Not selected"} <br>
+      <hr>
+      Total Cost: $${total.toFixed(2)}
+    `;
+
+  } catch (error) {
+    document.getElementById("result").innerText = "Error loading data.";
+    console.error(error);
+  }
+}
+</script>
+
+</body>
+</html>
